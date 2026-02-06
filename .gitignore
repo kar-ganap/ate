@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+wheels/
+.eggs/
+
+# uv
+.venv/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Experiment data (raw outputs — structure committed via .gitkeep)
+data/ruff/*
+!data/ruff/.gitkeep
+data/transcripts/*
+!data/transcripts/.gitkeep
+data/patches/*
+!data/patches/.gitkeep
+data/scores/*
+!data/scores/.gitkeep

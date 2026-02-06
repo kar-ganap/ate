@@ -1,0 +1,108 @@
+treatments:
+  - id: 0
+    label: "Control (Subagents)"
+    dimensions:
+      decomposition: explicit
+      prompt_specificity: detailed
+      delegate_mode: null  # N/A for subagents
+      team_size: "8x1"
+      communication: null  # N/A for subagents
+    execution:
+      mode: programmatic  # claude -p with hard limits
+      max_turns: 50
+      timeout_seconds: 1800
+      output_format: json
+
+  - id: 1
+    label: "Structured Team"
+    dimensions:
+      decomposition: explicit
+      prompt_specificity: detailed
+      delegate_mode: true
+      team_size: "4x2"
+      communication: neutral
+    execution:
+      mode: interactive
+      soft_budget: "~25 tool calls per bug"
+
+  - id: 2a
+    label: "Autonomous + Encourage"
+    dimensions:
+      decomposition: autonomous
+      prompt_specificity: vague
+      delegate_mode: true
+      team_size: "4x2"
+      communication: encourage
+    execution:
+      mode: interactive
+      soft_budget: "~25 tool calls per bug"
+
+  - id: 2b
+    label: "Autonomous + Discourage"
+    dimensions:
+      decomposition: autonomous
+      prompt_specificity: vague
+      delegate_mode: true
+      team_size: "4x2"
+      communication: discourage
+    execution:
+      mode: interactive
+      soft_budget: "~25 tool calls per bug"
+
+  - id: 3
+    label: "Invest in Prompts"
+    dimensions:
+      decomposition: autonomous
+      prompt_specificity: detailed
+      delegate_mode: true
+      team_size: "4x2"
+      communication: neutral
+    execution:
+      mode: interactive
+      soft_budget: "~25 tool calls per bug"
+
+  - id: 4
+    label: "Player-Coach"
+    dimensions:
+      decomposition: autonomous
+      prompt_specificity: vague
+      delegate_mode: false
+      team_size: "4x2"
+      communication: neutral
+    execution:
+      mode: interactive
+      soft_budget: "~25 tool calls per bug"
+
+  - id: 5
+    label: "Max Parallelism"
+    dimensions:
+      decomposition: explicit
+      prompt_specificity: detailed
+      delegate_mode: true
+      team_size: "8x1"
+      communication: neutral
+    execution:
+      mode: interactive
+      soft_budget: "~25 tool calls per bug"
+
+bug_assignments:
+  explicit:
+    agent_1: [20945, 22528]
+    agent_2: [18654, 17010]
+    agent_3: [7847, 19301]
+    agent_4: [4384, 22221]
+  autonomous: null  # Lead decides; document what it chooses
+
+correlation_pairs:
+  - name: semantic
+    bug_a: 20945
+    bug_b: 18654
+    shared: "ruff_python_semantic name resolution"
+  - name: scope
+    bug_a: 7847
+    bug_b: 4384
+    shared: "Nested function scope tracking"
+  - name: parser
+    bug_a: 22528
+    bug_b: 19301
+    shared: "Python grammar edge case handling"
