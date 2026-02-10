@@ -70,15 +70,16 @@ primary:
       # Parser incorrectly reports syntax error for valid Python
       # code using match-like patterns.
 
-  - id: 17010
-    rule: server
-    title: "Server panic (glob double braces)"
+  - id: 22494
+    rule: formatter
+    title: "Formatter range formatting (semicolons)"
     category: configuration
-    complexity: simple
-    url: "https://github.com/astral-sh/ruff/issues/17010"
+    complexity: medium
+    url: "https://github.com/astral-sh/ruff/issues/22494"
     reproduction: |
-      # Ruff server panics when glob patterns contain double braces
-      # in configuration files.
+      # ruff format --range on semicolon-separated statements introduces
+      # whitespace instead of splitting onto separate lines.
+    swap_note: "Replaced #17010 (server panic, fixed in v0.14.14)"
 
 backup:
   - id: 20891
@@ -98,13 +99,14 @@ backup:
     url: "https://github.com/astral-sh/ruff/issues/13337"
     can_replace: [20945, 18654]
 
-  - id: 22494
-    rule: formatter
-    title: "Formatter range formatting"
+  - id: 17010
+    rule: server
+    title: "Server panic (glob double braces)"
     category: configuration
-    complexity: medium
-    url: "https://github.com/astral-sh/ruff/issues/22494"
-    can_replace: [17010]
+    complexity: simple
+    url: "https://github.com/astral-sh/ruff/issues/17010"
+    can_replace: []
+    note: "Fixed in v0.14.14 — swapped out for #22494 in primary list"
 
   - id: 6432
     rule: PD

@@ -44,7 +44,7 @@ Key framing choices:
 | 5 | #19301 | Parser indentation after backslashes | Parser | Hard |
 | 6 | #22221 | F401 fix infinite loop (__all__ duplicates) | Autofix convergence | Medium |
 | 7 | #22528 | Parser false syntax error (match-like) | Parser | Hard |
-| 8 | #17010 | Server panic (glob double braces) | Configuration | Simple |
+| 8 | #22494 | Formatter range formatting (semicolons) | Configuration | Medium |
 
 ### Backup 4 Bugs
 
@@ -52,7 +52,7 @@ Key framing choices:
 |---|-------|-------------|
 | 9 | #20891 | F401+I002+PYI025 infinite loop → replaces #19301 |
 | 10 | #13337 | RUF001 emoji false positive → replaces any semantic bug |
-| 11 | #22494 | Formatter range formatting → replaces #17010 |
+| 11 | #17010 | Server panic (glob braces) — fixed in v0.14.14, dropped |
 | 12 | #6432 | PD rules non-pandas → replaces any semantic bug |
 
 ### Swap Note
@@ -90,7 +90,7 @@ it back in restores that pair at the cost of losing the parser correlation pair.
 
 ```
 Agent 1: #20945 (semantic)  + #22528 (parser)
-Agent 2: #18654 (semantic)  + #17010 (config)
+Agent 2: #18654 (semantic)  + #22494 (config/formatter)
 Agent 3: #7847  (scope)     + #19301 (parser)
 Agent 4: #4384  (scope)     + #22221 (autofix)
 ```
@@ -291,3 +291,4 @@ reproducibility gain for a portfolio project.
 | Date | Change | Rationale | Phase |
 |------|--------|-----------|-------|
 | 2026-02-05 | Initial design frozen | Consolidation from design conversations | 0 |
+| 2026-02-09 | Swapped #17010 → #22494 | #17010 (server panic, glob braces) fixed in v0.14.14; replaced with #22494 (formatter range formatting) per backup rules | 1 |
