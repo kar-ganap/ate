@@ -94,9 +94,10 @@ def ruff_build() -> None:
 @ruff_app.command("verify")
 def ruff_verify() -> None:
     """Verify all primary bugs reproduce against pinned Ruff."""
-    typer.echo("Bug verification not yet implemented (needs reproduction cases).")
-    typer.echo("Run scripts/verify_bugs.py when ready.")
-    raise typer.Exit(1)
+    script = Path(__file__).parent.parent.parent / "scripts" / "verify_bugs.py"
+    result = subprocess.run(["uv", "run", "python", str(script)], capture_output=False)
+    if result.returncode != 0:
+        raise typer.Exit(1)
 
 
 if __name__ == "__main__":

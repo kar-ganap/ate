@@ -60,14 +60,15 @@ ate/
 
 ## Current State
 
-Phase 0 complete. Skeleton, models, config, CLI, and docs all in place.
+Phase 1 complete. Ruff v0.14.14 pinned and built, all 8 bugs verified reproducible,
+invocation smoke tests passed (subagent, agent definition, agent teams).
 
 ## Phases
 
 | Phase | Branch | Status |
 |-------|--------|--------|
 | 0 | `phase-0-skeleton` | Complete |
-| 1 | `phase-1-ruff` | Pending |
+| 1 | `phase-1-ruff` | Complete |
 | 2 | `phase-2-execution` | Pending |
 | 3 | `phase-3-scoring` | Pending |
 | 4 | `phase-4-advanced-scoring` | Pending |
@@ -78,3 +79,10 @@ Phase 0 complete. Skeleton, models, config, CLI, and docs all in place.
 - pyproject.toml: `dependencies` must come before `[project.scripts]` in the
   `[project]` table, otherwise hatchling fails with a confusing error about
   "Object reference `dependencies` of field `project.scripts` must be a string"
+- Bug #17010 (server panic, glob braces) was fixed in v0.14.14 — swapped to #22494
+  (formatter range formatting). See experiment-design.md Change Log.
+- ruff.toml uses flat `[lint.mccabe]` format, NOT `[tool.ruff.lint.mccabe]`
+- Bug #20945 repro requires types to be UNDEFINED (no BaseModel subclasses) so
+  resolve_name returns None for both → None==None false positive
+- Bug #22221 repro requires package structure (foo/__init__.py with submodule imports)
+  not simple stdlib imports

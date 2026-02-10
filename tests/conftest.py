@@ -126,7 +126,7 @@ def treatments_yaml_path(tmp_path: Path) -> Path:
         "bug_assignments": {
             "explicit": {
                 "agent_1": [20945, 22528],
-                "agent_2": [18654, 17010],
+                "agent_2": [18654, 22494],
                 "agent_3": [7847, 19301],
                 "agent_4": [4384, 22221],
             },
