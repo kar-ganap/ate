@@ -46,7 +46,7 @@ ate/
 │   ├── config.py              # YAML loading
 │   ├── cli.py                 # Typer CLI
 │   ├── harness.py             # Execution harness (scaffolding + exploratory Treatment 0)
-│   ├── scoring/               # Tiers 1, 2, 2.5, 3
+│   ├── scoring/               # Tiers 1, 2 (reproduction, persistence, tier1, tier2)
 │   └── analysis/              # Aggregation, viz, communication
 ├── tests/
 │   ├── unit/                  # Mocked tests
@@ -62,11 +62,11 @@ ate/
 
 ## Current State
 
-Phase 2 complete. Execution harness implemented with interactive scaffolding for all
-treatments. Design revised mid-phase: Treatment 0 split into 0a (Full Context, 1×8)
-and 0b (Swim Lanes, 8×1), all treatments now interactive to eliminate confounds.
-`run_treatment0()` kept in harness.py for exploratory/supplementary use only.
-99 unit tests, 2 integration.
+Phase 3 complete. Scoring infrastructure implemented: Tier 1 automated pipeline
+(apply patch → rebuild → check reproduction → run tests), Tier 2 human scoring
+scaffolding (guides per bug, interactive score entry, per-bug JSON persistence).
+Reproduction module extracted from `scripts/verify_bugs.py` into
+`src/ate/scoring/reproduction.py`. 162 unit tests, 2 integration.
 
 ## Phases
 
@@ -75,7 +75,7 @@ and 0b (Swim Lanes, 8×1), all treatments now interactive to eliminate confounds
 | 0 | `phase-0-skeleton` | Complete |
 | 1 | `phase-1-ruff` | Complete |
 | 2 | `phase-2-execution` | Complete |
-| 3 | `phase-3-scoring` | Pending |
+| 3 | `phase-3-scoring` | Complete |
 | 4 | `phase-4-advanced-scoring` | Pending |
 | 5 | `phase-5-analysis` | Pending |
 
