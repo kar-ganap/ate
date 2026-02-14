@@ -2,9 +2,10 @@
 
 ## Overview
 
-Experimental comparison of Claude Code Agent Teams vs Subagents for bug triage
-and fix on the Ruff Python linter (Rust codebase). 7 treatments, 8 bugs,
-5-tier measurement framework.
+Experimental comparison of Claude Code with Agent Teams vs default Claude Code
+for bug triage and fix on the Ruff Python linter (Rust codebase). 8 treatments
+(including 0a/0b control variants), 8 bugs, 5-tier measurement framework.
+All treatments are interactive (no programmatic `claude -p` in core experiment).
 
 ## Tech Stack
 
@@ -33,7 +34,7 @@ ate/
 ├── pyproject.toml             # uv + hatchling + ruff + mypy + pytest
 ├── config/
 │   ├── bugs.yaml              # 12 bugs (8 primary + 4 backup)
-│   └── treatments.yaml        # 7 treatments with dimension values
+│   └── treatments.yaml        # 8 treatments (0a, 0b, 1, 2a, 2b, 3, 4, 5)
 ├── docs/
 │   ├── desiderata.md          # Immutable principles
 │   ├── process.md             # Phase lifecycle & validation gates
@@ -44,6 +45,7 @@ ate/
 │   ├── models.py              # Pydantic models
 │   ├── config.py              # YAML loading
 │   ├── cli.py                 # Typer CLI
+│   ├── harness.py             # Execution harness (scaffolding + exploratory Treatment 0)
 │   ├── scoring/               # Tiers 1, 2, 2.5, 3
 │   └── analysis/              # Aggregation, viz, communication
 ├── tests/
@@ -60,8 +62,11 @@ ate/
 
 ## Current State
 
-Phase 1 complete. Ruff v0.14.14 pinned and built, all 8 bugs verified reproducible,
-invocation smoke tests passed (subagent, agent definition, agent teams).
+Phase 2 complete. Execution harness implemented with interactive scaffolding for all
+treatments. Design revised mid-phase: Treatment 0 split into 0a (Full Context, 1×8)
+and 0b (Swim Lanes, 8×1), all treatments now interactive to eliminate confounds.
+`run_treatment0()` kept in harness.py for exploratory/supplementary use only.
+99 unit tests, 2 integration.
 
 ## Phases
 
@@ -69,7 +74,7 @@ invocation smoke tests passed (subagent, agent definition, agent teams).
 |-------|--------|--------|
 | 0 | `phase-0-skeleton` | Complete |
 | 1 | `phase-1-ruff` | Complete |
-| 2 | `phase-2-execution` | Pending |
+| 2 | `phase-2-execution` | Complete |
 | 3 | `phase-3-scoring` | Pending |
 | 4 | `phase-4-advanced-scoring` | Pending |
 | 5 | `phase-5-analysis` | Pending |
@@ -86,3 +91,8 @@ invocation smoke tests passed (subagent, agent definition, agent teams).
   resolve_name returns None for both → None==None false positive
 - Bug #22221 repro requires package structure (foo/__init__.py with submodule imports)
   not simple stdlib imports
+- Treatment 0 was originally programmatic (`claude -p`) but introduced 5 confounds
+  vs interactive treatments. Revised to interactive 0a/0b. See experiment-design.md
+  Change Log for full rationale.
+- Autonomous treatments (2a, 2b, 3, 4): if lead co-assigns correlated bug pairs to
+  same agent, Tier 3 scores are "structurally advantaged — not comparable"

@@ -21,7 +21,7 @@ Change Log entry with date, what changed, and rationale.
 
 Pin Ruff to a specific commit. Version-control all prompts and agent definitions.
 Document what can't be pinned (interactive sessions, model non-determinism).
-Treatment 0 uses `-p` mode with hard limits for maximum reproducibility.
+Pin model and Claude Code version across all treatments.
 
 ## 5. Objective Before Subjective
 

@@ -58,11 +58,11 @@ class TestLoadTreatments:
     def test_treatment_fields(self, treatments_yaml_path: Path) -> None:
         config = load_treatments(config_dir=treatments_yaml_path)
         t0 = config.treatments[0]
-        assert t0.id == 0
-        assert t0.label == "Control (Subagents)"
+        assert t0.id == "0b"
+        assert t0.label == "Control: Swim Lanes"
         assert t0.dimensions.decomposition == Decomposition.EXPLICIT
-        assert t0.execution.mode == ExecutionMode.PROGRAMMATIC
-        assert t0.execution.max_turns == 50
+        assert t0.execution.mode == ExecutionMode.INTERACTIVE
+        assert t0.execution.soft_budget == "~25 tool calls per bug"
 
     def test_interactive_treatment(self, treatments_yaml_path: Path) -> None:
         config = load_treatments(config_dir=treatments_yaml_path)
@@ -88,11 +88,12 @@ class TestLoadTreatments:
     def test_load_real_config(self) -> None:
         """Load the actual config/treatments.yaml to verify it's valid."""
         config = load_treatments()
-        assert len(config.treatments) == 7
+        assert len(config.treatments) == 8
         assert len(config.correlation_pairs) == 3
         # Verify treatment IDs cover expected range
         ids = [t.id for t in config.treatments]
-        assert 0 in ids
+        assert "0a" in ids
+        assert "0b" in ids
         assert 5 in ids
         assert "2a" in ids
         assert "2b" in ids
