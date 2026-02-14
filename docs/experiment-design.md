@@ -6,7 +6,7 @@ here. Changes require a Change Log entry (see bottom).
 ## Hypothesis & Framing
 
 We compare Claude Code's **Agent Teams** (experimental multi-agent coordination)
-against **Subagents** (established single-agent delegation) for a bug triage and
+against **default Claude Code usage** (single-agent, no teams) for a bug triage and
 fix pipeline on the Ruff Python linter.
 
 This is an **observational study with partial determinism**. We don't claim
@@ -69,24 +69,40 @@ it back in restores that pair at the cost of losing the parser correlation pair.
 | 1 | Decomposition | Controlled | Explicit (human assigns bugs) vs Autonomous (lead decides) |
 | 2 | Prompt specificity | Semi-controlled | Detailed (full context) vs Vague (minimal guidance) |
 | 3 | Delegate mode | Controlled, binary | On vs Off |
-| 4 | Team size | Controlled | 4×2 vs 8×1 |
-| 5 | Communication | Observational | Measured via message count/content/impact |
+| 4 | Team size | Controlled | 1×8 (control only) / 4×2 / 8×1 |
+| 5 | Communication guidance | Semi-controlled | Neutral / Encourage / Discourage (N/A for controls) |
+| 6 | Communication behavior | Observational | Measured via message count/content/impact |
 
 ## Treatment Matrix
 
-| # | Label | Decomp | Prompt | Delegate | Size | Comm |
-|---|-------|--------|--------|----------|------|------|
-| 0 | Control (Subagents) | Explicit | Detailed | N/A | 8×1 | N/A |
-| 1 | Structured Team | Explicit | Detailed | On | 4×2 | Neutral |
-| 2a | Autonomous + Encourage | Autonomous | Vague | On | 4×2 | Encourage |
-| 2b | Autonomous + Discourage | Autonomous | Vague | On | 4×2 | Discourage |
-| 3 | Invest in Prompts | Autonomous | Detailed | On | 4×2 | Neutral |
-| 4 | Player-Coach | Autonomous | Vague | Off | 4×2 | Neutral |
-| 5 | Max Parallelism | Explicit | Detailed | On | 8×1 | Neutral |
+| # | Label | Decomp | Prompt | Delegate | Size | Comm | Agent Teams |
+|---|-------|--------|--------|----------|------|------|-------------|
+| 0a | Control: Full Context | Explicit | Detailed | N/A | 1×8 | N/A | OFF |
+| 0b | Control: Swim Lanes | Explicit | Detailed | N/A | 8×1 | N/A | OFF |
+| 1 | Structured Team | Explicit | Detailed | On | 4×2 | Neutral | ON |
+| 2a | Autonomous + Encourage | Autonomous | Vague | On | 4×2 | Encourage | ON |
+| 2b | Autonomous + Discourage | Autonomous | Vague | On | 4×2 | Discourage | ON |
+| 3 | Invest in Prompts | Autonomous | Detailed | On | 4×2 | Neutral | ON |
+| 4 | Player-Coach | Autonomous | Vague | Off | 4×2 | Neutral | ON |
+| 5 | Max Parallelism | Explicit | Detailed | On | 8×1 | Neutral | ON |
+
+**Treatment 0 variants:**
+- **0a (Full Context)**: 1 interactive session covering all 8 bugs sequentially.
+  Represents a single developer using Claude for all bugs — the natural default.
+- **0b (Swim Lanes)**: 8 separate interactive sessions, 1 bug each.
+  Represents 8 developers independently using Claude ("stay in your swim lane").
+
+Neither variant uses `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. Claude may
+internally use subagents (Task tool) — that's Claude's natural behavior, not a
+confound. The only controlled variable vs Treatments 1-5 is: Agent Teams OFF.
 
 ## Bug Assignment
 
-### Cross-Subsystem Pairing (explicit treatments)
+### Cross-Subsystem Pairing (explicit treatments: 0b, 1, 5)
+
+Note: Treatment 0a presents all 8 bugs in a single opening prompt. The bugs are listed
+in **primary portfolio order** (#20945, #18654, #7847, #4384, #19301, #22221, #22528,
+#22494) — NOT grouped by agent pairing, to avoid priming cross-bug connections.
 
 ```
 Agent 1: #20945 (semantic)  + #22528 (parser)
@@ -108,16 +124,54 @@ Agent 4: #4384  (scope)     + #22221 (autofix)
 For autonomous treatments (2a, 2b, 3, 4), the lead decides bug assignment.
 Document what the lead chooses — the assignment itself is data.
 
+**Tier 3 analysis protocol for autonomous assignments**: If an autonomous lead
+assigns both bugs from a hidden correlation pair to the same agent, that pair's
+Tier 3 score is flagged as "structurally advantaged — not comparable." Only compare
+Tier 3 scores for pairs where both treatments assigned correlated bugs to different
+agents. This concern is specific to Tier 3; Tiers 1, 2, 4, 5 are minimally affected
+by assignment differences.
+
 ## Key Comparisons
 
-| Comparison | What it isolates |
-|------------|-----------------|
-| 0 vs 1 | Agent teams infrastructure value (structure held constant) |
-| 1 vs 5 | Team size effect (4×2 vs 8×1) |
-| 2a vs 2b | Communication encouragement effect |
-| 2a vs 3 | Where to invest human effort (prompts vs assignment) |
-| 2a vs 4 | Coordinator role purity (delegate on vs off) |
-| 0 vs 5 | Most direct subagents-vs-teams (both 8×1, both detailed+explicit) |
+### Clean single-variable comparisons
+
+| Comparison | What it isolates | Confounds |
+|------------|-----------------|-----------|
+| **0b vs 5** | **Agent Teams value** (primary question) | None — both 8×1, explicit, detailed |
+| **0a vs 0b** | Cross-bug context value (single agent) | Session scope (1 vs 8) |
+| **1 vs 5** | Team size effect (4×2 vs 8×1) | None |
+| **1 vs 3** | Decomposition (explicit vs autonomous) | None — both detailed, on, 4×2, neutral |
+| **2a vs 2b** | Communication guidance (encourage vs discourage) | None |
+
+### Two-variable comparisons (directionally useful, not definitive)
+
+| Comparison | What it targets | Confounds |
+|------------|----------------|-----------|
+| 0a vs 1 | Single agent vs organized team | Size (1×8 vs 4×2) + Agent Teams |
+| 0a vs 5 | Full context vs parallel team | Size (1×8 vs 8×1) + Agent Teams |
+| 2a vs 3 | Prompt investment effect | Comm guidance (encourage → neutral) |
+| 2a vs 4 | Coordinator role purity (delegate on vs off) | Comm guidance (encourage → neutral) |
+| 4 vs 3 | Prompt specificity (alternative) | Delegate mode (off → on) |
+
+**Autonomous assignment caveat (all autonomous comparisons)**: At Tier 3 (correlation
+discovery), these are only clean for correlation pairs where both treatments assigned
+the correlated bugs to different agents. See Autonomous Treatment Rules above.
+Tiers 1, 2, 4, 5 are minimally affected.
+
+### Design limitations
+
+This is a **fractional factorial design** (8 treatments covering 5+ dimensions). A full
+factorial would require 32+ treatments, which is infeasible. As a result:
+
+- **No clean single-variable comparison exists for prompt specificity or delegate mode.**
+  Every pairing that varies prompt also varies communication guidance and/or delegate mode.
+  The two-variable comparisons above are directionally informative but not definitive.
+- Treatment 2a (Encourage) is the only treatment with non-Neutral communication guidance
+  among the autonomous treatments. This makes 2a a useful anchor for the communication
+  comparison (2a vs 2b) but introduces a communication confound in other 2a-based pairings.
+- The clean comparisons (0b vs 5, 1 vs 5, 1 vs 3, 2a vs 2b) answer the most important
+  questions: does Agent Teams help, does team size matter, does decomposition matter,
+  and does communication guidance matter.
 
 ## Measurement Framework
 
@@ -154,7 +208,7 @@ anchoring risk.
 
 | Metric | How | What it reveals |
 |--------|-----|-----------------|
-| Cross-treatment agreement | Cluster diagnoses per bug across all 7 treatments, compute % plurality agreement | Diagnostic clarity vs ambiguity per bug |
+| Cross-treatment agreement | Cluster diagnoses per bug across all 8 treatments, compute % plurality agreement | Diagnostic clarity vs ambiguity per bug |
 | Within-team agreement | Compare teammates' diagnoses before lead synthesis | Whether communication drove convergence |
 | Agreement-accuracy correlation | Plot agreement level vs Tier 1 fix success | Whether consensus predicts correctness |
 | Groupthink index | Cases where within-team agreement > cross-treatment agreement AND team's consensus fix fails Tier 1 | When communication produces confident wrong answers |
@@ -209,76 +263,82 @@ pure human scoring.
 ### Scoring Logistics
 
 - Tier 1: Fully automated via scripts
-- Tier 2: 56 manual evaluations (8 bugs × 7 treatments), ~1 day
+- Tier 2: 64 manual evaluations (8 bugs × 8 treatments), ~1 day
 - Tier 2.5: Semi-automated (Claude session classifies, human validates)
-- Tier 3: 21 assessments (3 pairs × 7 treatments)
-- Tier 4: Only for 6 agent team runs, from session logs
+- Tier 3: 24 assessments (3 pairs × 8 treatments)
+- Tier 4: Only for 6 agent team runs (Treatments 1-5), from session logs
 
 ## Execution Protocol
 
-### Treatment 0 (Subagent Control) — `-p` mode with hard limits
+All treatments are interactive with identical soft budget constraints. The only
+controlled variable is whether `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is set.
 
-```bash
-timeout 1800 claude -p "Investigate Ruff issue #XXXXX..." \
-  --max-turns 50 --model sonnet \
-  --allowedTools "Read,Grep,Glob,Bash,Edit,Task" \
-  --output-format json
-```
+### Shared Protocol (all treatments)
 
-- Hard budget: `--max-turns 50` + `timeout 1800` (30 min wall-clock)
-- Structured JSON output captured automatically
-- Subagent definitions in `.claude/agents/*.md` (version-controlled)
-- Costs API tokens but bounded and fully reproducible
-
-### Treatments 1–5 (Agent Teams) — Interactive with soft limits
-
+- Interactive Claude Code session
+- **Pin Claude Code version**: record `claude --version` before starting; do not
+  update Claude Code mid-experiment. If an update is unavoidable, note it in the
+  Change Log and re-run affected treatments.
+- **Pin model**: use the same model for all treatments (record model name in metadata).
+  Do not rely on default model selection — it may change across sessions.
 - CLAUDE.md soft instruction: "Budget ~25 tool calls per bug before reporting"
 - Human monitors in real-time, Escape if stuck
-- Document actual turn count per teammate per bug post-hoc from transcripts
-- Soft limit applies equally across all 6 agent team treatments
-- Cross-team comparisons remain fair; only 0-vs-rest has hard/soft asymmetry
+- Document actual turn count per agent per bug post-hoc from transcripts
+- Ruff source at `data/ruff/` (pinned to v0.14.14)
+
+### Treatment 0a (Full Context) — Single session, no Agent Teams
+
+- `claude` (no env var)
+- 1 session covering all 8 bugs sequentially
+- Opening prompt lists all 8 bugs in primary portfolio order (see Bug Assignment)
+- Claude may use Task tool (subagents) naturally — this is data, not a confound
+
+### Treatment 0b (Swim Lanes) — 8 sessions, no Agent Teams
+
+- `claude` (no env var)
+- 8 fresh sessions, 1 bug per session
+- Each session gets a single-bug opening prompt
+- No cross-bug context (sessions are independent)
+
+### Treatments 1–5 (Agent Teams) — Interactive with team formation
+
+- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 claude`
+- Form team per treatment config (size, delegate mode, communication guidance)
+- For explicit treatments (1, 5): assign bugs per the assignment table
+- For autonomous treatments (2a, 2b, 3, 4): let the lead assign; document choices
+- Soft budget applies equally across all agent team treatments
 
 ## Reproducibility
 
 ### What's fully reproducible
 
-- Treatment 0 via `-p` mode (structured JSON output, `--max-turns 50`,
-  `timeout 1800`, pinned commit, version-controlled agent definitions)
 - Bug portfolio and treatment definitions (committed YAML)
 - Scoring rubrics and algorithms (committed code)
+- Ruff pinned to v0.14.14 (committed script)
+- Session guide templates (version-controlled)
 
-### What's not reproducible in interactive mode
+### What's not reproducible (all treatments equally)
 
 - Exact turn counts (soft budget, human judgment)
-- Exact prompts typed (documented post-hoc)
+- Exact prompts typed (documented post-hoc via session guides)
 - Session-level randomness (model non-determinism)
 
 ### Mitigations
 
-- File-based subagent/agent definitions (version-controlled prompts)
+- Session guides with standardized opening prompts (version-controlled)
 - CLAUDE.md soft budget instruction ("~25 tool calls per bug")
 - Document actual turn counts post-hoc from transcripts
 - Screen recordings as supplementary evidence
 - Fresh sessions per bug for scoring independence
 
-### The asymmetry as a finding
-
-"Subagents support hard programmatic budget controls; agent teams currently do
-not." This is itself a data point about the two approaches, not a confound.
-
-### What we chose NOT to do
-
-Hooks-based enforcement (Option B) was considered and rejected — the added
-complexity of shell-script turn counters was not worth the marginal
-reproducibility gain for a portfolio project.
+All treatments share the same reproducibility profile — no asymmetry between
+control and agent team treatments.
 
 ## Cost Model
 
-- Claude Max subscription: all interactive sessions included
-- $50 Extra Usage credits: buffer for overages
-- Treatment 0 via `-p` mode: ~$25–40 API cost (only real expense)
-- Total out of pocket: **~$25–40**
-- If Treatment 0 run interactively instead: **~$0**
+- All 8 treatments run interactively under Claude Max subscription
+- Total out of pocket: **$0** (no API costs)
+- Token usage captured from session transcripts for cross-treatment comparison
 
 ## Presentation & Tooling
 
@@ -292,3 +352,6 @@ reproducibility gain for a portfolio project.
 |------|--------|-----------|-------|
 | 2026-02-05 | Initial design frozen | Consolidation from design conversations | 0 |
 | 2026-02-09 | Swapped #17010 → #22494 | #17010 (server panic, glob braces) fixed in v0.14.14; replaced with #22494 (formatter range formatting) per backup rules | 1 |
+| 2026-02-14 | Treatment 0 → interactive, split into 0a/0b | Programmatic `claude -p` introduced 5 confounds vs interactive treatments (execution mode, budget, model, tools, human presence). Making all treatments interactive reduces the independent variable to a single clean bit: Agent Teams ON/OFF. Split into 0a (1 session, all 8 bugs) and 0b (8 sessions, 1 bug each) for richer comparisons. Cost goes from ~$25-40 API to $0 (all subscription). | 2 |
+| 2026-02-14 | Added Tier 3 analysis protocol for autonomous assignments | Autonomous leads may co-assign correlated bugs to the same agent, inflating Tier 3 scores. Protocol: document all assignments, flag co-assigned pairs as "structurally advantaged — not comparable." | 2 |
+| 2026-02-14 | Key comparisons audit: fixed confounds, added missing comparisons | 2a vs 3 and 2a vs 4 incorrectly listed "None" confounds — both have communication guidance confound (Encourage→Neutral). Added 1 vs 3 (clean decomposition comparison). Split table into clean vs two-variable comparisons. Added design limitations note acknowledging fractional factorial trade-offs. Pinned model/version in protocol. Specified Treatment 0a bug ordering (portfolio order, not agent-pair order) to avoid priming. | 2 |

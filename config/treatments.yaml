@@ -1,17 +1,27 @@
 treatments:
-  - id: 0
-    label: "Control (Subagents)"
+  - id: "0a"
+    label: "Control: Full Context"
     dimensions:
       decomposition: explicit
       prompt_specificity: detailed
-      delegate_mode: null  # N/A for subagents
-      team_size: "8x1"
-      communication: null  # N/A for subagents
+      delegate_mode: null  # N/A — no Agent Teams
+      team_size: "1x8"
+      communication: null  # N/A — no Agent Teams
     execution:
-      mode: programmatic  # claude -p with hard limits
-      max_turns: 50
-      timeout_seconds: 1800
-      output_format: json
+      mode: interactive
+      soft_budget: "~25 tool calls per bug"
+
+  - id: "0b"
+    label: "Control: Swim Lanes"
+    dimensions:
+      decomposition: explicit
+      prompt_specificity: detailed
+      delegate_mode: null  # N/A — no Agent Teams
+      team_size: "8x1"
+      communication: null  # N/A — no Agent Teams
+    execution:
+      mode: interactive
+      soft_budget: "~25 tool calls per bug"
 
   - id: 1
     label: "Structured Team"
