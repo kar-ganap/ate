@@ -17,6 +17,8 @@ from ate.models import (
     ExecutionConfig,
     ExecutionMode,
     PromptSpecificity,
+    RunMetadata,
+    RunResult,
     TeamSize,
     Tier1Score,
     Tier2Score,
@@ -357,3 +359,106 @@ class TestTier3Score:
         )
         assert score.connection_correct is None
         assert score.discovery_mechanism is None
+
+
+class TestRunMetadata:
+    def test_minimal(self) -> None:
+        meta = RunMetadata(
+            treatment_id=0,
+            bug_id=20945,
+            mode="programmatic",
+        )
+        assert meta.treatment_id == 0
+        assert meta.bug_id == 20945
+        assert meta.mode == ExecutionMode.PROGRAMMATIC
+        assert meta.started_at is None
+        assert meta.completed_at is None
+        assert meta.wall_clock_seconds is None
+        assert meta.session_id is None
+        assert meta.model is None
+        assert meta.num_turns is None
+        assert meta.total_cost_usd is None
+        assert meta.exit_code is None
+
+    def test_full(self) -> None:
+        from datetime import datetime
+
+        now = datetime(2026, 2, 9, 12, 0, 0)
+        meta = RunMetadata(
+            treatment_id="2a",
+            bug_id=7847,
+            started_at=now,
+            completed_at=now,
+            wall_clock_seconds=120.5,
+            session_id="abc123",
+            model="claude-opus-4-6",
+            num_turns=5,
+            total_cost_usd=1.25,
+            exit_code=0,
+            mode="interactive",
+        )
+        assert meta.treatment_id == "2a"
+        assert meta.wall_clock_seconds == 120.5
+        assert meta.model == "claude-opus-4-6"
+        assert meta.mode == ExecutionMode.INTERACTIVE
+
+    def test_string_treatment_id(self) -> None:
+        meta = RunMetadata(treatment_id="2b", bug_id=4384, mode="interactive")
+        assert meta.treatment_id == "2b"
+
+    def test_invalid_mode(self) -> None:
+        with pytest.raises(ValidationError):
+            RunMetadata(treatment_id=0, bug_id=20945, mode="unknown")
+
+    def test_serialization_roundtrip(self) -> None:
+        meta = RunMetadata(
+            treatment_id=0,
+            bug_id=20945,
+            mode="programmatic",
+            session_id="test-session",
+            exit_code=0,
+        )
+        data = meta.model_dump()
+        restored = RunMetadata(**data)
+        assert restored == meta
+
+
+class TestRunResult:
+    def test_minimal(self) -> None:
+        meta = RunMetadata(treatment_id=0, bug_id=20945, mode="programmatic")
+        result = RunResult(metadata=meta)
+        assert result.raw_output_path is None
+        assert result.result_text is None
+        assert result.patch_path is None
+        assert result.metadata == meta
+
+    def test_full(self) -> None:
+        from pathlib import Path
+
+        meta = RunMetadata(
+            treatment_id=0,
+            bug_id=20945,
+            mode="programmatic",
+            exit_code=0,
+        )
+        result = RunResult(
+            raw_output_path=Path("data/transcripts/treatment-0/bug-20945/raw_output.json"),
+            result_text="Fixed the bug by...",
+            patch_path=Path("data/patches/treatment-0/bug-20945.patch"),
+            metadata=meta,
+        )
+        assert result.raw_output_path == Path(
+            "data/transcripts/treatment-0/bug-20945/raw_output.json"
+        )
+        assert result.result_text == "Fixed the bug by..."
+        assert result.patch_path == Path("data/patches/treatment-0/bug-20945.patch")
+
+    def test_serialization_roundtrip(self) -> None:
+        meta = RunMetadata(treatment_id=1, bug_id=7847, mode="interactive")
+        result = RunResult(
+            result_text="Diagnosis: scope issue",
+            metadata=meta,
+        )
+        data = result.model_dump()
+        restored = RunResult(**data)
+        assert restored == result

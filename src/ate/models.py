@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from enum import StrEnum
+from pathlib import Path
 
 from pydantic import BaseModel, Field
 
@@ -34,6 +36,7 @@ class PromptSpecificity(StrEnum):
 
 
 class TeamSize(StrEnum):
+    ONE_BY_EIGHT = "1x8"
     FOUR_BY_TWO = "4x2"
     EIGHT_BY_ONE = "8x1"
 
@@ -147,6 +150,34 @@ class TreatmentConfig(BaseModel):
     treatments: list[Treatment]
     bug_assignments: BugAssignments
     correlation_pairs: list[CorrelationPair]
+
+
+# --- Run Models ---
+
+
+class RunMetadata(BaseModel):
+    """Metadata for a single treatment × bug execution run."""
+
+    treatment_id: int | str
+    bug_id: int
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    wall_clock_seconds: float | None = None
+    session_id: str | None = None
+    model: str | None = None
+    num_turns: int | None = None
+    total_cost_usd: float | None = None
+    exit_code: int | None = None
+    mode: ExecutionMode
+
+
+class RunResult(BaseModel):
+    """Result of a single treatment × bug execution run."""
+
+    raw_output_path: Path | None = None
+    result_text: str | None = None
+    patch_path: Path | None = None
+    metadata: RunMetadata
 
 
 # --- Score Models ---
