@@ -32,6 +32,9 @@ Thumbs.db
 htmlcov/
 .coverage
 
+# Working directory (PR prep, scratch)
+work/
+
 # Experiment data (raw outputs — structure committed via .gitkeep)
 data/ruff/*
 !data/ruff/.gitkeep

@@ -62,11 +62,16 @@ ate/
 
 ## Current State
 
-Phase 3 complete. Scoring infrastructure implemented: Tier 1 automated pipeline
-(apply patch → rebuild → check reproduction → run tests), Tier 2 human scoring
-scaffolding (guides per bug, interactive score entry, per-bug JSON persistence).
-Reproduction module extracted from `scripts/verify_bugs.py` into
-`src/ate/scoring/reproduction.py`. 162 unit tests, 2 integration.
+**Round 1 complete (3 of 8 treatments).** Treatments 0b, 2a, 5 executed on all
+8 primary bugs. Ceiling effect confirmed: 8/8 in all treatments, zero inter-agent
+communication. Pivoting to hybrid design — Round 1 data kept, Round 2 will use
+harder bugs. 4 PRs submitted to astral-sh/ruff (#23294, #23296, #23297, #23299).
+
+Next: Screen harder Ruff bugs for Round 2 (red-knot, LSP, multi-rule autofix,
+cross-crate refactors). Target ~8 bugs where Claude struggles or takes 30+ min.
+
+Scoring infrastructure (Phase 3) complete: Tier 1 automated pipeline, Tier 2
+human scoring scaffolding. 162 unit tests, 2 integration.
 
 ## Phases
 
@@ -76,8 +81,10 @@ Reproduction module extracted from `scripts/verify_bugs.py` into
 | 1 | `phase-1-ruff` | Complete |
 | 2 | `phase-2-execution` | Complete |
 | 3 | `phase-3-scoring` | Complete |
-| 4 | `phase-4-advanced-scoring` | Pending |
-| 5 | `phase-5-analysis` | Pending |
+| R1 | `round1-learnings` | Complete |
+| R2-screen | TBD | Next |
+| 4 | `phase-4-advanced-scoring` | Pending (blocked on Round 2) |
+| 5 | `phase-5-analysis` | Pending (blocked on Round 2) |
 
 ## Known Gotchas
 
@@ -96,3 +103,17 @@ Reproduction module extracted from `scripts/verify_bugs.py` into
   Change Log for full rationale.
 - Autonomous treatments (2a, 2b, 3, 4): if lead co-assigns correlated bug pairs to
   same agent, Tier 3 scores are "structurally advantaged — not comparable"
+- **Ceiling effect**: All 8 primary bugs solved 8/8 by Claude Opus 4.6 in <10 min
+  regardless of treatment. Bugs rated "hard" by humans are easy for the model.
+- **Communication verification**: Only `SendMessage(recipient=<peer-agent>)` with
+  system routing metadata counts as inter-agent communication. Agent-written logs
+  are NOT evidence. Established in Phase 1, validated in Round 1.
+- **Zero communication**: Both team treatments (2a, 5) had zero peer-to-peer
+  SendMessage calls. Explicit encouragement ("share findings with teammates!")
+  had no effect. Agent Teams = parallelism engine on easy bugs.
+- **JSONL transcript path**: Has `-ate` suffix:
+  `~/.claude/projects/-Users-kartikganapathi-Documents-Personal-random-projects-others-projects-checkout-ate/`
+- **git clean needed after patches**: `git -C data/ruff checkout .` doesn't remove
+  untracked files (test fixtures, snapshots). Use `git -C data/ruff clean -fd` too.
+- **work/ directory**: Used for PR prep (fork clone). Gitignored, separate from
+  experiment's data/ruff/.
