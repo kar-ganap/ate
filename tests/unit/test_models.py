@@ -17,6 +17,7 @@ from ate.models import (
     ExecutionConfig,
     ExecutionMode,
     PromptSpecificity,
+    RoundBugs,
     RunMetadata,
     RunResult,
     TeamSize,
@@ -62,6 +63,15 @@ class TestBug:
         bug = Bug(**sample_bug_data)
         assert bug.can_replace == [20945, 18654]
 
+    def test_round_default(self, sample_bug_data: dict[str, Any]) -> None:
+        bug = Bug(**sample_bug_data)
+        assert bug.round == 1
+
+    def test_round_explicit(self, sample_bug_data: dict[str, Any]) -> None:
+        sample_bug_data["round"] = 2
+        bug = Bug(**sample_bug_data)
+        assert bug.round == 2
+
     def test_serialization_roundtrip(self, sample_bug_data: dict[str, Any]) -> None:
         bug = Bug(**sample_bug_data)
         data = bug.model_dump()
@@ -69,68 +79,107 @@ class TestBug:
         assert restored == bug
 
 
-class TestBugPortfolio:
+class TestRoundBugs:
     def test_all_bugs(self) -> None:
         primary = [
-            Bug(
-                id=1,
-                rule="R1",
-                title="Bug 1",
-                category="semantic_analysis",
-                complexity="simple",
-                url="https://example.com/1",
-            ),
+            Bug(id=1, rule="R1", title="Bug 1", category="semantic_analysis",
+                complexity="simple", url="https://example.com/1"),
         ]
         backup = [
-            Bug(
-                id=2,
-                rule="R2",
-                title="Bug 2",
-                category="parser",
-                complexity="hard",
-                url="https://example.com/2",
-            ),
+            Bug(id=2, rule="R2", title="Bug 2", category="parser",
+                complexity="hard", url="https://example.com/2"),
         ]
-        portfolio = BugPortfolio(primary=primary, backup=backup)
-        assert len(portfolio.all_bugs) == 2
-        assert len(portfolio.primary) == 1
+        rb = RoundBugs(ruff_pin="0.14.14", primary=primary, backup=backup)
+        assert len(rb.all_bugs) == 2
+        assert len(rb.primary) == 1
+        assert len(rb.backup) == 1
+        assert rb.ruff_pin == "0.14.14"
+
+    def test_empty_defaults(self) -> None:
+        rb = RoundBugs()
+        assert rb.primary == []
+        assert rb.backup == []
+        assert rb.ruff_pin == ""
+
+
+class TestBugPortfolio:
+    def _make_portfolio(self) -> BugPortfolio:
+        """Helper to build a two-round portfolio."""
+        r1 = RoundBugs(
+            ruff_pin="0.14.14",
+            primary=[
+                Bug(id=1, rule="R1", title="Bug 1", category="semantic_analysis",
+                    complexity="simple", url="https://example.com/1", round=1),
+            ],
+            backup=[
+                Bug(id=2, rule="R2", title="Bug 2", category="parser",
+                    complexity="hard", url="https://example.com/2", round=1),
+            ],
+        )
+        r2 = RoundBugs(
+            ruff_pin="abc1234",
+            primary=[
+                Bug(id=3, rule="R3", title="Bug 3", category="configuration",
+                    complexity="medium", url="https://example.com/3", round=2),
+            ],
+        )
+        return BugPortfolio(rounds={1: r1, 2: r2})
+
+    def test_all_bugs(self) -> None:
+        portfolio = self._make_portfolio()
+        assert len(portfolio.all_bugs) == 3
+
+    def test_primary_across_rounds(self) -> None:
+        portfolio = self._make_portfolio()
+        assert len(portfolio.primary) == 2
+        ids = {b.id for b in portfolio.primary}
+        assert ids == {1, 3}
+
+    def test_backup_across_rounds(self) -> None:
+        portfolio = self._make_portfolio()
         assert len(portfolio.backup) == 1
+        assert portfolio.backup[0].id == 2
 
     def test_get_bug_found(self) -> None:
-        primary = [
-            Bug(
-                id=20945,
-                rule="FAST001",
-                title="Test",
-                category="semantic_analysis",
-                complexity="simple",
-                url="https://example.com",
-            ),
-        ]
-        portfolio = BugPortfolio(primary=primary)
-        bug = portfolio.get_bug(20945)
+        portfolio = self._make_portfolio()
+        bug = portfolio.get_bug(1)
         assert bug is not None
-        assert bug.id == 20945
+        assert bug.id == 1
+        assert bug.round == 1
+
+    def test_get_bug_from_round2(self) -> None:
+        portfolio = self._make_portfolio()
+        bug = portfolio.get_bug(3)
+        assert bug is not None
+        assert bug.id == 3
+        assert bug.round == 2
 
     def test_get_bug_not_found(self) -> None:
-        portfolio = BugPortfolio(primary=[])
+        portfolio = BugPortfolio(rounds={})
         assert portfolio.get_bug(99999) is None
 
     def test_get_bug_from_backup(self) -> None:
-        backup = [
-            Bug(
-                id=13337,
-                rule="RUF001",
-                title="Test",
-                category="semantic_analysis",
-                complexity="simple",
-                url="https://example.com",
-            ),
-        ]
-        portfolio = BugPortfolio(primary=[], backup=backup)
-        bug = portfolio.get_bug(13337)
+        portfolio = self._make_portfolio()
+        bug = portfolio.get_bug(2)
         assert bug is not None
-        assert bug.id == 13337
+        assert bug.id == 2
+
+    def test_get_round(self) -> None:
+        portfolio = self._make_portfolio()
+        r1 = portfolio.get_round(1)
+        assert r1 is not None
+        assert r1.ruff_pin == "0.14.14"
+        assert len(r1.primary) == 1
+
+    def test_get_round_missing(self) -> None:
+        portfolio = self._make_portfolio()
+        assert portfolio.get_round(99) is None
+
+    def test_empty_portfolio(self) -> None:
+        portfolio = BugPortfolio(rounds={})
+        assert portfolio.primary == []
+        assert portfolio.backup == []
+        assert portfolio.all_bugs == []
 
 
 class TestTreatmentDimensions:

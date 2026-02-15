@@ -3,7 +3,7 @@
 set -euo pipefail
 
 RUFF_DIR="data/ruff"
-RUFF_TAG="0.14.14"
+RUFF_TAG="0.15.1"
 RUFF_REPO="https://github.com/astral-sh/ruff.git"
 
 if [ -d "$RUFF_DIR/.git" ]; then

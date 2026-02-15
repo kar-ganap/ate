@@ -1,0 +1,132 @@
+# Round 2 Bug Screening Candidates
+#
+# Status values: pending, keep, maybe, drop, closed, has-pr
+# Each candidate will be screened with a 30-min Claude session.
+# KEEP: Claude fails or takes 30+ min
+# MAYBE: Claude succeeds in 15-30 min with dead ends
+# DROP: Claude succeeds in <15 min cleanly (too easy)
+
+candidates:
+  # Tier A — Very Hard (multi-component, architectural)
+  - id: 21896
+    title: "Parser relexing + unclosed strings"
+    category: parser
+    url: "https://github.com/astral-sh/ruff/issues/21896"
+    tier: A
+    why_hard: "Lexer/parser state sync, f-string nesting, error recovery"
+    status: pending
+
+  - id: 22930
+    title: "Parser stack overflow handling"
+    category: parser
+    url: "https://github.com/astral-sh/ruff/issues/22930"
+    tier: A
+    why_hard: "Graceful error handling for deeply nested code"
+    status: pending
+
+  - id: 20891
+    title: "F401+I002+PYI025 infinite loop"
+    category: autofix_convergence
+    url: "https://github.com/astral-sh/ruff/issues/20891"
+    tier: A
+    why_hard: "3-rule autofix conflict, fix application ordering"
+    status: pending
+
+  - id: 12611
+    title: "E302+I001 infinite loop (non-ASCII)"
+    category: autofix_convergence
+    url: "https://github.com/astral-sh/ruff/issues/12611"
+    tier: A
+    why_hard: "2-rule interaction, has ASCII repro"
+    status: pending
+
+  # Tier B — Hard (deep semantic, cross-scope)
+  - id: 12865
+    title: "DJ012 cross-file inheritance"
+    category: semantic_analysis
+    url: "https://github.com/astral-sh/ruff/issues/12865"
+    tier: B
+    why_hard: "Multi-file analysis, type inference needed"
+    status: pending
+
+  - id: 10874
+    title: "F811 cross-scope in stubs"
+    category: scope_control_flow
+    url: "https://github.com/astral-sh/ruff/issues/10874"
+    tier: B
+    why_hard: "Scope boundaries, explicit re-exports"
+    status: pending
+
+  - id: 19632
+    title: "F811 regression + typing-modules config"
+    category: semantic_analysis
+    url: "https://github.com/astral-sh/ruff/issues/19632"
+    tier: B
+    why_hard: "Config-dependent semantic, bisected"
+    status: pending
+
+  - id: 14695
+    title: "ANN401 stack overflow (escape seqs)"
+    category: parser
+    url: "https://github.com/astral-sh/ruff/issues/14695"
+    tier: B
+    why_hard: "Parser recursion depth issue"
+    status: pending
+
+  # Tier C — Moderate-Hard (LSP, rule interaction)
+  - id: 16500
+    title: "C416+C409 autofix conflict (preview)"
+    category: autofix_convergence
+    url: "https://github.com/astral-sh/ruff/issues/16500"
+    tier: C
+    why_hard: "Rule interaction, preview mode"
+    status: pending
+
+  - id: 21332
+    title: "LSP unused-noqa diagnostic tags"
+    category: configuration
+    url: "https://github.com/astral-sh/ruff/issues/21332"
+    tier: C
+    why_hard: "Diagnostic structure changes"
+    status: pending
+
+  - id: 17558
+    title: "LSP formatter/linter race condition"
+    category: configuration
+    url: "https://github.com/astral-sh/ruff/issues/17558"
+    tier: C
+    why_hard: "Server state management"
+    status: pending
+
+  - id: 20847
+    title: "LSP workspace config resolution"
+    category: configuration
+    url: "https://github.com/astral-sh/ruff/issues/20847"
+    tier: C
+    why_hard: "Configuration hierarchy"
+    status: pending
+
+  - id: 15510
+    title: "Parser diagnostic rendering regression"
+    category: parser
+    url: "https://github.com/astral-sh/ruff/issues/15510"
+    tier: C
+    why_hard: "annotate-snippets edge case"
+    status: pending
+
+  - id: 9958
+    title: "Formatter trims lines after semicolons"
+    category: configuration
+    url: "https://github.com/astral-sh/ruff/issues/9958"
+    tier: C
+    why_hard: "Trivia handling"
+    status: pending
+
+  # Extra candidates (if needed)
+  - id: 21098
+    title: "FURB142 generator parenthesization"
+    category: autofix_convergence
+    url: "https://github.com/astral-sh/ruff/issues/21098"
+    tier: C
+    why_hard: "Autofix parenthesization edge case"
+    status: pending

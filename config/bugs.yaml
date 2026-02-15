@@ -1,117 +1,124 @@
-primary:
-  - id: 20945
-    rule: FAST001
-    title: "FAST001 false positive (None==None)"
-    category: semantic_analysis
-    complexity: simple
-    url: "https://github.com/astral-sh/ruff/issues/20945"
-    reproduction: |
-      # FAST001 should not flag `if x is None and y is None`
-      # because None==None is a valid identity check pattern.
+round1:
+  ruff_pin: "0.14.14"
+  primary:
+    - id: 20945
+      rule: FAST001
+      title: "FAST001 false positive (None==None)"
+      category: semantic_analysis
+      complexity: simple
+      url: "https://github.com/astral-sh/ruff/issues/20945"
+      reproduction: |
+        # FAST001 should not flag `if x is None and y is None`
+        # because None==None is a valid identity check pattern.
 
-  - id: 18654
-    rule: ARG001
-    title: "ARG001 false positive (@singledispatch)"
-    category: semantic_analysis
-    complexity: medium
-    url: "https://github.com/astral-sh/ruff/issues/18654"
-    reproduction: |
-      # ARG001 incorrectly flags singledispatch overload arguments
-      # as unused.
+    - id: 18654
+      rule: ARG001
+      title: "ARG001 false positive (@singledispatch)"
+      category: semantic_analysis
+      complexity: medium
+      url: "https://github.com/astral-sh/ruff/issues/18654"
+      reproduction: |
+        # ARG001 incorrectly flags singledispatch overload arguments
+        # as unused.
 
-  - id: 7847
-    rule: B023
-    title: "B023 false positive (immediate invocation)"
-    category: scope_control_flow
-    complexity: medium
-    url: "https://github.com/astral-sh/ruff/issues/7847"
-    reproduction: |
-      # B023 warns about binding loop variable in lambda/closure
-      # even when the closure is immediately invoked.
+    - id: 7847
+      rule: B023
+      title: "B023 false positive (immediate invocation)"
+      category: scope_control_flow
+      complexity: medium
+      url: "https://github.com/astral-sh/ruff/issues/7847"
+      reproduction: |
+        # B023 warns about binding loop variable in lambda/closure
+        # even when the closure is immediately invoked.
 
-  - id: 4384
-    rule: C901
-    title: "C901 false positive (closure complexity)"
-    category: scope_control_flow
-    complexity: medium
-    url: "https://github.com/astral-sh/ruff/issues/4384"
-    reproduction: |
-      # C901 counts nested function complexity toward the parent,
-      # inflating the parent's complexity score.
+    - id: 4384
+      rule: C901
+      title: "C901 false positive (closure complexity)"
+      category: scope_control_flow
+      complexity: medium
+      url: "https://github.com/astral-sh/ruff/issues/4384"
+      reproduction: |
+        # C901 counts nested function complexity toward the parent,
+        # inflating the parent's complexity score.
 
-  - id: 19301
-    rule: parser
-    title: "Parser indentation after backslashes"
-    category: parser
-    complexity: hard
-    url: "https://github.com/astral-sh/ruff/issues/19301"
-    reproduction: |
-      # Parser mishandles indentation after line continuation
-      # backslashes in certain contexts.
-    swap_note: "If too hard, swap to backup #20891"
+    - id: 19301
+      rule: parser
+      title: "Parser indentation after backslashes"
+      category: parser
+      complexity: hard
+      url: "https://github.com/astral-sh/ruff/issues/19301"
+      reproduction: |
+        # Parser mishandles indentation after line continuation
+        # backslashes in certain contexts.
+      swap_note: "If too hard, swap to backup #20891"
 
-  - id: 22221
-    rule: F401
-    title: "F401 fix infinite loop (__all__ duplicates)"
-    category: autofix_convergence
-    complexity: medium
-    url: "https://github.com/astral-sh/ruff/issues/22221"
-    reproduction: |
-      # F401 autofix creates an infinite loop when __all__ contains
-      # duplicate entries.
+    - id: 22221
+      rule: F401
+      title: "F401 fix infinite loop (__all__ duplicates)"
+      category: autofix_convergence
+      complexity: medium
+      url: "https://github.com/astral-sh/ruff/issues/22221"
+      reproduction: |
+        # F401 autofix creates an infinite loop when __all__ contains
+        # duplicate entries.
 
-  - id: 22528
-    rule: parser
-    title: "Parser false syntax error (match-like)"
-    category: parser
-    complexity: hard
-    url: "https://github.com/astral-sh/ruff/issues/22528"
-    reproduction: |
-      # Parser incorrectly reports syntax error for valid Python
-      # code using match-like patterns.
+    - id: 22528
+      rule: parser
+      title: "Parser false syntax error (match-like)"
+      category: parser
+      complexity: hard
+      url: "https://github.com/astral-sh/ruff/issues/22528"
+      reproduction: |
+        # Parser incorrectly reports syntax error for valid Python
+        # code using match-like patterns.
 
-  - id: 22494
-    rule: formatter
-    title: "Formatter range formatting (semicolons)"
-    category: configuration
-    complexity: medium
-    url: "https://github.com/astral-sh/ruff/issues/22494"
-    reproduction: |
-      # ruff format --range on semicolon-separated statements introduces
-      # whitespace instead of splitting onto separate lines.
-    swap_note: "Replaced #17010 (server panic, fixed in v0.14.14)"
+    - id: 22494
+      rule: formatter
+      title: "Formatter range formatting (semicolons)"
+      category: configuration
+      complexity: medium
+      url: "https://github.com/astral-sh/ruff/issues/22494"
+      reproduction: |
+        # ruff format --range on semicolon-separated statements introduces
+        # whitespace instead of splitting onto separate lines.
+      swap_note: "Replaced #17010 (server panic, fixed in v0.14.14)"
 
-backup:
-  - id: 20891
-    rule: F401
-    title: "F401+I002+PYI025 infinite loop"
-    category: autofix_convergence
-    complexity: medium
-    url: "https://github.com/astral-sh/ruff/issues/20891"
-    can_replace: [19301]
-    note: "Original pick paired with #22221 as autofix-convergence correlation pair"
+  backup:
+    - id: 20891
+      rule: F401
+      title: "F401+I002+PYI025 infinite loop"
+      category: autofix_convergence
+      complexity: medium
+      url: "https://github.com/astral-sh/ruff/issues/20891"
+      can_replace: [19301]
+      note: "Original pick paired with #22221 as autofix-convergence correlation pair"
 
-  - id: 13337
-    rule: RUF001
-    title: "RUF001 emoji false positive"
-    category: semantic_analysis
-    complexity: simple
-    url: "https://github.com/astral-sh/ruff/issues/13337"
-    can_replace: [20945, 18654]
+    - id: 13337
+      rule: RUF001
+      title: "RUF001 emoji false positive"
+      category: semantic_analysis
+      complexity: simple
+      url: "https://github.com/astral-sh/ruff/issues/13337"
+      can_replace: [20945, 18654]
 
-  - id: 17010
-    rule: server
-    title: "Server panic (glob double braces)"
-    category: configuration
-    complexity: simple
-    url: "https://github.com/astral-sh/ruff/issues/17010"
-    can_replace: []
-    note: "Fixed in v0.14.14 — swapped out for #22494 in primary list"
+    - id: 17010
+      rule: server
+      title: "Server panic (glob double braces)"
+      category: configuration
+      complexity: simple
+      url: "https://github.com/astral-sh/ruff/issues/17010"
+      can_replace: []
+      note: "Fixed in v0.14.14 — swapped out for #22494 in primary list"
 
-  - id: 6432
-    rule: PD
-    title: "PD rules non-pandas"
-    category: semantic_analysis
-    complexity: medium
-    url: "https://github.com/astral-sh/ruff/issues/6432"
-    can_replace: [20945, 18654]
+    - id: 6432
+      rule: PD
+      title: "PD rules non-pandas"
+      category: semantic_analysis
+      complexity: medium
+      url: "https://github.com/astral-sh/ruff/issues/6432"
+      can_replace: [20945, 18654]
+
+round2:
+  ruff_pin: "0.15.1"  # Latest release as of 2026-02-15
+  primary: []  # Populated after screening
+  backup: []

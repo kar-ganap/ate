@@ -16,6 +16,11 @@ class TestLoadBugs:
         assert len(portfolio.primary) == 2
         assert len(portfolio.backup) == 1
 
+    def test_round_field_set(self, bugs_yaml_path: Path) -> None:
+        portfolio = load_bugs(config_dir=bugs_yaml_path)
+        for bug in portfolio.all_bugs:
+            assert bug.round == 1
+
     def test_primary_bug_fields(self, bugs_yaml_path: Path) -> None:
         portfolio = load_bugs(config_dir=bugs_yaml_path)
         bug = portfolio.primary[0]
@@ -35,6 +40,12 @@ class TestLoadBugs:
         assert bug is not None
         assert bug.rule == "B023"
 
+    def test_ruff_pin(self, bugs_yaml_path: Path) -> None:
+        portfolio = load_bugs(config_dir=bugs_yaml_path)
+        r1 = portfolio.get_round(1)
+        assert r1 is not None
+        assert r1.ruff_pin == "0.14.14"
+
     def test_missing_file_raises(self, tmp_path: Path) -> None:
         with pytest.raises(FileNotFoundError, match="bugs.yaml not found"):
             load_bugs(config_dir=tmp_path)
@@ -42,12 +53,24 @@ class TestLoadBugs:
     def test_load_real_config(self) -> None:
         """Load the actual config/bugs.yaml to verify it's valid."""
         portfolio = load_bugs()
+        # Round 1: 8 primary + 4 backup
+        r1 = portfolio.get_round(1)
+        assert r1 is not None
+        assert len(r1.primary) == 8
+        assert len(r1.backup) == 4
+        assert r1.ruff_pin == "0.14.14"
+        # Round 2: empty (not yet populated)
+        r2 = portfolio.get_round(2)
+        assert r2 is not None
+        assert len(r2.primary) == 0
+        # Backward compat: portfolio.primary aggregates across rounds
         assert len(portfolio.primary) == 8
         assert len(portfolio.backup) == 4
         # Verify all categories are valid enums
         for bug in portfolio.all_bugs:
             assert isinstance(bug.category, BugCategory)
             assert isinstance(bug.complexity, Complexity)
+            assert bug.round in (1, 2)
 
 
 class TestLoadTreatments:

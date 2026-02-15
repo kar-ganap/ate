@@ -5,7 +5,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-RUFF_TAG = "0.14.14"
+RUFF_TAG = "0.15.1"
 RUFF_REPO = "https://github.com/astral-sh/ruff.git"
 
 

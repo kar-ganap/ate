@@ -13,6 +13,7 @@ from ate.models import (
     BugPortfolio,
     CorrelationPair,
     ExecutionConfig,
+    RoundBugs,
     Treatment,
     TreatmentConfig,
     TreatmentDimensions,
@@ -22,7 +23,10 @@ DEFAULT_CONFIG_DIR = Path(__file__).parent.parent.parent / "config"
 
 
 def load_bugs(config_dir: Path = DEFAULT_CONFIG_DIR) -> BugPortfolio:
-    """Load bug portfolio from bugs.yaml."""
+    """Load bug portfolio from bugs.yaml.
+
+    Supports round-aware format (round1:/round2: top-level keys).
+    """
     bugs_path = config_dir / "bugs.yaml"
     if not bugs_path.exists():
         msg = f"bugs.yaml not found at {bugs_path}"
@@ -31,9 +35,20 @@ def load_bugs(config_dir: Path = DEFAULT_CONFIG_DIR) -> BugPortfolio:
     with open(bugs_path) as f:
         raw = yaml.safe_load(f)
 
-    primary = [Bug(**bug) for bug in raw.get("primary", [])]
-    backup = [Bug(**bug) for bug in raw.get("backup", [])]
-    return BugPortfolio(primary=primary, backup=backup)
+    rounds: dict[int, RoundBugs] = {}
+    for key, value in raw.items():
+        if not key.startswith("round"):
+            continue
+        round_num = int(key[5:])  # "round1" -> 1
+        ruff_pin = value.get("ruff_pin", "")
+        primary = [Bug(round=round_num, **bug) for bug in value.get("primary", [])]
+        backup = [Bug(round=round_num, **bug) for bug in value.get("backup", [])]
+        rounds[round_num] = RoundBugs(
+            ruff_pin=ruff_pin,
+            primary=primary,
+            backup=backup,
+        )
+    return BugPortfolio(rounds=rounds)
 
 
 def load_treatments(config_dir: Path = DEFAULT_CONFIG_DIR) -> TreatmentConfig:
