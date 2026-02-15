@@ -334,6 +334,41 @@ controlled variable is whether `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is set.
 All treatments share the same reproducibility profile — no asymmetry between
 control and agent team treatments.
 
+## Round Structure
+
+### Round 1 (Complete — 3 of 8 treatments)
+
+Treatments 0b, 2a, and 5 were executed on all 8 primary bugs. Results:
+- **8/8 bug fixes** in all three treatments (ceiling effect)
+- **Zero peer-to-peer communication** in both team treatments (2a, 5)
+- Agent Teams provided speed improvement only (49 min → 20 min → 9.5 min)
+- Communication encouragement (2a) had no observable effect vs neutral (5)
+
+Remaining 5 treatments (0a, 1, 2b, 3, 4) are deferred pending Round 2 decision.
+
+### Round 2 (Planned)
+
+Harder bugs that Claude struggles with or takes 30+ min to solve. Same 8
+treatments, same Ruff codebase, different bug portfolio.
+
+**Bug screening criteria**:
+- Claude fails to produce a correct fix within 30 min
+- Or produces a fix that fails tests / introduces regressions
+- Or requires multiple attempts / dead ends before succeeding
+- Categories: red-knot type checker, LSP server, multi-rule autofix conflicts,
+  cross-crate refactors, configuration edge cases
+
+**Screening protocol**: Test 15-20 candidate bugs with a single Claude session
+each (similar to Treatment 0b). Keep ~8 where Claude demonstrates genuine
+difficulty.
+
+**What Round 2 preserves from Round 1**:
+- Same treatment matrix and experimental dimensions
+- Same measurement framework (Tiers 1-5)
+- Same Ruff codebase (v0.14.14 or later pin TBD)
+- Round 1 data remains valid for speed/cost analysis and as a calibration
+  baseline ("easy bug performance")
+
 ## Cost Model
 
 - All 8 treatments run interactively under Claude Max subscription
@@ -355,3 +390,7 @@ control and agent team treatments.
 | 2026-02-14 | Treatment 0 → interactive, split into 0a/0b | Programmatic `claude -p` introduced 5 confounds vs interactive treatments (execution mode, budget, model, tools, human presence). Making all treatments interactive reduces the independent variable to a single clean bit: Agent Teams ON/OFF. Split into 0a (1 session, all 8 bugs) and 0b (8 sessions, 1 bug each) for richer comparisons. Cost goes from ~$25-40 API to $0 (all subscription). | 2 |
 | 2026-02-14 | Added Tier 3 analysis protocol for autonomous assignments | Autonomous leads may co-assign correlated bugs to the same agent, inflating Tier 3 scores. Protocol: document all assignments, flag co-assigned pairs as "structurally advantaged — not comparable." | 2 |
 | 2026-02-14 | Key comparisons audit: fixed confounds, added missing comparisons | 2a vs 3 and 2a vs 4 incorrectly listed "None" confounds — both have communication guidance confound (Encourage→Neutral). Added 1 vs 3 (clean decomposition comparison). Split table into clean vs two-variable comparisons. Added design limitations note acknowledging fractional factorial trade-offs. Pinned model/version in protocol. Specified Treatment 0a bug ordering (portfolio order, not agent-pair order) to avoid priming. | 2 |
+| 2026-02-15 | Executed Treatments 0b, 2a, 5 (Round 1) | First three treatments run. All scored 8/8 — ceiling effect confirmed. Zero inter-agent communication in both team treatments despite explicit encouragement in 2a. | R1 |
+| 2026-02-15 | Ceiling effect: pivot to hybrid rounds | Primary 8 bugs too easy for Claude Opus 4.6 — all solved in <10 min regardless of treatment. Adopting Option E: keep Round 1 data for speed/cost analysis, screen harder bugs for Round 2. Same treatments, same framework, harder bugs. | R1 |
+| 2026-02-15 | Submitted 4 PRs to astral-sh/ruff | Bugs #7847, #22494, #22528, #19301 still open — submitted fixes as PRs (#23294, #23296, #23297, #23299). Patches applied cleanly against latest main. | R1 |
+| 2026-02-15 | Communication verification protocol confirmed | SendMessage with peer recipient is the only valid signal for inter-agent communication. Agent-written logs are not evidence. Routing metadata is unforgeable system-generated proof. Protocol from Phase 1 smoke test validated against Round 1 data. | R1 |
