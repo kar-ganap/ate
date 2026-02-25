@@ -33,8 +33,9 @@ ate/
 ├── Makefile                   # test, lint, typecheck shortcuts
 ├── pyproject.toml             # uv + hatchling + ruff + mypy + pytest
 ├── config/
-│   ├── bugs.yaml              # 12 bugs (8 primary + 4 backup)
-│   └── treatments.yaml        # 8 treatments (0a, 0b, 1, 2a, 2b, 3, 4, 5)
+│   ├── bugs.yaml              # Round-aware: round1 (8+4 bugs), round2 (TBD)
+│   ├── treatments.yaml        # 8 treatments (0a, 0b, 1, 2a, 2b, 3, 4, 5)
+│   └── screening_candidates.yaml  # Round 2 candidate bugs for screening
 ├── docs/
 │   ├── desiderata.md          # Immutable principles
 │   ├── process.md             # Phase lifecycle & validation gates
@@ -62,16 +63,21 @@ ate/
 
 ## Current State
 
-**Round 1 complete (3 of 8 treatments).** Treatments 0b, 2a, 5 executed on all
-8 primary bugs. Ceiling effect confirmed: 8/8 in all treatments, zero inter-agent
-communication. Pivoting to hybrid design — Round 1 data kept, Round 2 will use
-harder bugs. 4 PRs submitted to astral-sh/ruff (#23294, #23296, #23297, #23299).
+**Round 2 screening infrastructure ready.** Config restructured to round-aware
+format (`round1:`/`round2:` in `config/bugs.yaml`). Bug model has `round` field.
+BugPortfolio supports `get_round()` with backward-compat `primary`/`backup`
+properties. 16 screening candidates in `config/screening_candidates.yaml`
+(4 Tier A, 4 Tier B, 8 Tier C). Round 2 Ruff pin: v0.15.1.
 
-Next: Screen harder Ruff bugs for Round 2 (red-knot, LSP, multi-rule autofix,
-cross-crate refactors). Target ~8 bugs where Claude struggles or takes 30+ min.
+Round 1 complete (3 of 8 treatments). Treatments 0b, 2a, 5 executed on all
+8 primary bugs. Ceiling effect confirmed: 8/8, zero inter-agent communication.
+4 PRs submitted to astral-sh/ruff (#23294, #23296, #23297, #23299).
+
+Next: Re-pin Ruff to v0.15.1, then screen candidates interactively (~30 min each).
+Target ~8 bugs where Claude fails or takes 30+ min.
 
 Scoring infrastructure (Phase 3) complete: Tier 1 automated pipeline, Tier 2
-human scoring scaffolding. 162 unit tests, 2 integration.
+human scoring scaffolding. 176 unit + 2 integration tests.
 
 ## Phases
 
@@ -82,7 +88,7 @@ human scoring scaffolding. 162 unit tests, 2 integration.
 | 2 | `phase-2-execution` | Complete |
 | 3 | `phase-3-scoring` | Complete |
 | R1 | `round1-learnings` | Complete |
-| R2-screen | TBD | Next |
+| R2-screen | `round2-screening` | In Progress |
 | 4 | `phase-4-advanced-scoring` | Pending (blocked on Round 2) |
 | 5 | `phase-5-analysis` | Pending (blocked on Round 2) |
 
@@ -117,3 +123,10 @@ human scoring scaffolding. 162 unit tests, 2 integration.
   untracked files (test fixtures, snapshots). Use `git -C data/ruff clean -fd` too.
 - **work/ directory**: Used for PR prep (fork clone). Gitignored, separate from
   experiment's data/ruff/.
+- **Round-aware config**: `config/bugs.yaml` uses `round1:`/`round2:` top-level keys.
+  Each round has `ruff_pin`, `primary`, `backup`. `BugPortfolio.primary`/`.backup`
+  properties aggregate across all rounds for backward compatibility. Use
+  `portfolio.get_round(n)` for round-specific access.
+- **RUFF_TAG in ruff.py**: Still hardcoded to `0.14.14` (Round 1). Must be updated
+  to `0.15.1` before Round 2 screening. The `ruff_pin` in bugs.yaml is the source
+  of truth per round; `RUFF_TAG` is for the pin script and preflight checks.

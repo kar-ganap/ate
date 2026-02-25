@@ -54,37 +54,40 @@ def sample_treatment_data() -> dict[str, Any]:
 
 @pytest.fixture
 def bugs_yaml_path(tmp_path: Path) -> Path:
-    """Create a temporary bugs.yaml for testing."""
+    """Create a temporary bugs.yaml for testing (round-aware format)."""
     data = {
-        "primary": [
-            {
-                "id": 20945,
-                "rule": "FAST001",
-                "title": "FAST001 false positive",
-                "category": "semantic_analysis",
-                "complexity": "simple",
-                "url": "https://github.com/astral-sh/ruff/issues/20945",
-            },
-            {
-                "id": 7847,
-                "rule": "B023",
-                "title": "B023 false positive",
-                "category": "scope_control_flow",
-                "complexity": "medium",
-                "url": "https://github.com/astral-sh/ruff/issues/7847",
-            },
-        ],
-        "backup": [
-            {
-                "id": 13337,
-                "rule": "RUF001",
-                "title": "RUF001 emoji false positive",
-                "category": "semantic_analysis",
-                "complexity": "simple",
-                "url": "https://github.com/astral-sh/ruff/issues/13337",
-                "can_replace": [20945],
-            },
-        ],
+        "round1": {
+            "ruff_pin": "0.14.14",
+            "primary": [
+                {
+                    "id": 20945,
+                    "rule": "FAST001",
+                    "title": "FAST001 false positive",
+                    "category": "semantic_analysis",
+                    "complexity": "simple",
+                    "url": "https://github.com/astral-sh/ruff/issues/20945",
+                },
+                {
+                    "id": 7847,
+                    "rule": "B023",
+                    "title": "B023 false positive",
+                    "category": "scope_control_flow",
+                    "complexity": "medium",
+                    "url": "https://github.com/astral-sh/ruff/issues/7847",
+                },
+            ],
+            "backup": [
+                {
+                    "id": 13337,
+                    "rule": "RUF001",
+                    "title": "RUF001 emoji false positive",
+                    "category": "semantic_analysis",
+                    "complexity": "simple",
+                    "url": "https://github.com/astral-sh/ruff/issues/13337",
+                    "can_replace": [20945],
+                },
+            ],
+        },
     }
     path = tmp_path / "bugs.yaml"
     with open(path, "w") as f:

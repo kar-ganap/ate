@@ -100,7 +100,7 @@ class TestPreflightCheck:
         binary = ruff_dir / "target" / "debug" / "ruff"
         binary.parent.mkdir(parents=True)
         binary.write_text("fake")
-        with patch("ate.harness.get_ruff_version", return_value="0.14.14"):
+        with patch("ate.harness.get_ruff_version", return_value="0.15.1"):
             issues = preflight_check(ruff_dir, bug_id=20945)
         assert issues == []
 
@@ -117,7 +117,7 @@ class TestPreflightCheck:
         binary.write_text("fake")
         with patch("ate.harness.get_ruff_version", return_value="0.15.0"):
             issues = preflight_check(ruff_dir)
-        assert any("version" in i.lower() or "0.14.14" in i for i in issues)
+        assert any("version" in i.lower() or "0.15.1" in i for i in issues)
 
 
 # ---------------------------------------------------------------------------
@@ -196,7 +196,7 @@ class TestRunTreatment0:
         binary = ruff_dir / "target" / "debug" / "ruff"
         binary.parent.mkdir(parents=True)
         binary.write_text("fake")
-        with patch("ate.harness.get_ruff_version", return_value="0.14.14"):
+        with patch("ate.harness.get_ruff_version", return_value="0.15.1"):
             result = run_treatment0(
                 sample_bug,
                 ruff_dir=ruff_dir,
@@ -221,7 +221,7 @@ class TestRunTreatment0:
         binary.write_text("fake")
         mock_output = json.dumps(mock_claude_json_output)
         with (
-            patch("ate.harness.get_ruff_version", return_value="0.14.14"),
+            patch("ate.harness.get_ruff_version", return_value="0.15.1"),
             patch("subprocess.run") as mock_run,
         ):
             mock_run.return_value.stdout = mock_output
@@ -253,7 +253,7 @@ class TestRunTreatment0:
         binary.parent.mkdir(parents=True)
         binary.write_text("fake")
         with (
-            patch("ate.harness.get_ruff_version", return_value="0.14.14"),
+            patch("ate.harness.get_ruff_version", return_value="0.15.1"),
             patch("subprocess.run", side_effect=subprocess.TimeoutExpired("claude", 1800)),
         ):
             result = run_treatment0(
@@ -279,7 +279,7 @@ class TestRunTreatment0:
         binary.parent.mkdir(parents=True)
         binary.write_text("fake")
         with (
-            patch("ate.harness.get_ruff_version", return_value="0.14.14"),
+            patch("ate.harness.get_ruff_version", return_value="0.15.1"),
             patch("subprocess.run") as mock_run,
         ):
             mock_run.return_value.stdout = "not valid json"
@@ -309,7 +309,7 @@ class TestRunTreatment0:
         binary.write_text("fake")
         mock_output = json.dumps(mock_claude_json_output)
         with (
-            patch("ate.harness.get_ruff_version", return_value="0.14.14"),
+            patch("ate.harness.get_ruff_version", return_value="0.15.1"),
             patch("subprocess.run") as mock_run,
         ):
             mock_run.return_value.stdout = mock_output

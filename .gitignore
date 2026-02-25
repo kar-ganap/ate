@@ -44,3 +44,5 @@ data/patches/*
 !data/patches/.gitkeep
 data/scores/*
 !data/scores/.gitkeep
+data/screening/*
+!data/screening/.gitkeep

@@ -64,17 +64,45 @@ class Bug(BaseModel):
     category: BugCategory
     complexity: Complexity
     url: str
+    round: int = 1
     reproduction: str = ""
     swap_note: str | None = None
     can_replace: list[int] = Field(default_factory=list)
     note: str | None = None
 
 
-class BugPortfolio(BaseModel):
-    """Complete bug portfolio: primary + backup."""
+class RoundBugs(BaseModel):
+    """Bug portfolio for a single round."""
 
-    primary: list[Bug]
+    ruff_pin: str = ""
+    primary: list[Bug] = Field(default_factory=list)
     backup: list[Bug] = Field(default_factory=list)
+
+    @property
+    def all_bugs(self) -> list[Bug]:
+        return self.primary + self.backup
+
+
+class BugPortfolio(BaseModel):
+    """Complete bug portfolio across all rounds."""
+
+    rounds: dict[int, RoundBugs] = Field(default_factory=dict)
+
+    @property
+    def primary(self) -> list[Bug]:
+        """All primary bugs across all rounds."""
+        bugs: list[Bug] = []
+        for rb in self.rounds.values():
+            bugs.extend(rb.primary)
+        return bugs
+
+    @property
+    def backup(self) -> list[Bug]:
+        """All backup bugs across all rounds."""
+        bugs: list[Bug] = []
+        for rb in self.rounds.values():
+            bugs.extend(rb.backup)
+        return bugs
 
     @property
     def all_bugs(self) -> list[Bug]:
@@ -85,6 +113,10 @@ class BugPortfolio(BaseModel):
             if bug.id == bug_id:
                 return bug
         return None
+
+    def get_round(self, round_num: int) -> RoundBugs | None:
+        """Get bugs for a specific round."""
+        return self.rounds.get(round_num)
 
 
 # --- Treatment Models ---

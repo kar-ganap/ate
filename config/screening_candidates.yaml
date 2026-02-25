@@ -1,0 +1,157 @@
+# Round 2 Bug Screening Candidates
+#
+# Status values: pending, keep, maybe, drop, closed, has-pr, skip-lsp, skip-crash
+# Each candidate will be screened with a 30-min Claude session.
+# KEEP: Claude fails or takes 30+ min
+# MAYBE: Claude succeeds in 15-30 min with dead ends
+# DROP: Claude succeeds in <15 min cleanly (too easy)
+#
+# Reproduction files are pre-built in data/screening/bug-{id}/
+
+candidates:
+  # Tier A — Very Hard (multi-component, architectural)
+  - id: 21896
+    title: "Parser relexing + unclosed strings"
+    category: parser
+    url: "https://github.com/astral-sh/ruff/issues/21896"
+    tier: A
+    why_hard: "Lexer/parser state sync, f-string nesting, error recovery"
+    repro: "ruff check reproduction.py"
+    status: maybe
+
+  - id: 22930
+    title: "Parser stack overflow handling"
+    category: parser
+    url: "https://github.com/astral-sh/ruff/issues/22930"
+    tier: A
+    why_hard: "Graceful error handling for deeply nested code"
+    repro: "python -c \"print('(' * 10000 + '1' + ')' * 10000)\" > deep.py && ruff check deep.py"
+    status: skip-crash
+    skip_reason: "Stack overflow crash — UX request, not a logic bug"
+
+  - id: 20891
+    title: "F401+I002+PYI025 infinite loop"
+    category: autofix_convergence
+    url: "https://github.com/astral-sh/ruff/issues/20891"
+    tier: A
+    why_hard: "3-rule autofix conflict, fix application ordering"
+    repro: "ruff check reproduction.py --config ruff.toml --unsafe-fixes --fix"
+    config: "ruff.toml in data/screening/bug-20891/"
+    status: drop
+
+  - id: 12611
+    title: "E302+I001 infinite loop (non-ASCII)"
+    category: autofix_convergence
+    url: "https://github.com/astral-sh/ruff/issues/12611"
+    tier: A
+    why_hard: "2-rule interaction, has ASCII repro"
+    repro: "ruff check reproduction.py --select E302,I001 --no-cache --fix --unsafe-fixes --isolated --preview"
+    note: "E302 requires --preview in v0.15.1 (moved from stable to preview)"
+    status: drop
+
+  # Tier B — Hard (deep semantic, cross-scope)
+  - id: 12865
+    title: "DJ012 cross-file inheritance"
+    category: semantic_analysis
+    url: "https://github.com/astral-sh/ruff/issues/12865"
+    tier: B
+    why_hard: "Multi-file analysis, type inference needed"
+    repro: "ruff check --select DJ012 my_pkg/my_model.py  (or single-file variant in reproduction.py)"
+    status: drop
+
+  - id: 10874
+    title: "F811 cross-scope in stubs"
+    category: scope_control_flow
+    url: "https://github.com/astral-sh/ruff/issues/10874"
+    tier: B
+    why_hard: "Scope boundaries, explicit re-exports"
+    repro: "ruff check --select F811 reproduction.pyi"
+    status: drop
+
+  - id: 19632
+    title: "F811 regression + typing-modules config"
+    category: semantic_analysis
+    url: "https://github.com/astral-sh/ruff/issues/19632"
+    tier: B
+    why_hard: "Config-dependent semantic, bisected to PR #10210"
+    repro: "ruff check --select F811 --config ruff.toml reproduction.py"
+    config: "ruff.toml in data/screening/bug-19632/"
+    status: drop
+
+  - id: 14695
+    title: "ANN401 stack overflow (escape seqs)"
+    category: parser
+    url: "https://github.com/astral-sh/ruff/issues/14695"
+    tier: B
+    why_hard: "Parser recursion depth issue in quoted annotations"
+    repro: "ruff check --isolated --select ANN401 reproduction.py"
+    status: drop
+
+  # Tier C — Moderate-Hard (LSP, rule interaction)
+  - id: 16500
+    title: "C416+C409 autofix conflict (preview)"
+    category: autofix_convergence
+    url: "https://github.com/astral-sh/ruff/issues/16500"
+    tier: C
+    why_hard: "Rule interaction, preview mode"
+    repro: "ruff check --preview --select C4 --fix reproduction.py"
+    status: pending
+
+  - id: 21332
+    title: "LSP unused-noqa diagnostic tags"
+    category: configuration
+    url: "https://github.com/astral-sh/ruff/issues/21332"
+    tier: C
+    why_hard: "Diagnostic structure changes"
+    repro: "N/A — visual bug only observable in LSP client"
+    status: skip-lsp
+    skip_reason: "LSP-only visual bug (diagnostic tags). CLI shows correct text."
+
+  - id: 17558
+    title: "Formatter vs linter disagreement (lines-after-imports)"
+    category: configuration
+    url: "https://github.com/astral-sh/ruff/issues/17558"
+    tier: C
+    why_hard: "Formatter and linter disagree on blank lines after imports"
+    repro: "ruff check reproduction.py --select I --fix && ruff format reproduction.py && ruff check reproduction.py --select I"
+    config: "ruff.toml in data/screening/bug-17558/"
+    status: pending
+
+  - id: 20847
+    title: "LSP workspace config resolution"
+    category: configuration
+    url: "https://github.com/astral-sh/ruff/issues/20847"
+    tier: C
+    why_hard: "Configuration hierarchy"
+    repro: "N/A — CLI works correctly, bug is LSP server-only"
+    status: skip-lsp
+    skip_reason: "LSP-only config resolution. CLI ruff check behaves correctly."
+
+  - id: 15510
+    title: "Parser diagnostic rendering regression"
+    category: parser
+    url: "https://github.com/astral-sh/ruff/issues/15510"
+    tier: C
+    why_hard: "annotate-snippets edge case with empty span after line terminator"
+    repro: "ruff check reproduction.py"
+    status: fixed
+    skip_reason: "Does not reproduce against v0.15.1 — appears fixed"
+
+  - id: 9958
+    title: "Formatter trims lines after semicolons"
+    category: configuration
+    url: "https://github.com/astral-sh/ruff/issues/9958"
+    tier: C
+    why_hard: "Trivia handling — semicolons confuse empty-line preservation"
+    repro: "ruff format reproduction.py"
+    status: pending
+
+  # Extra candidates (if needed)
+  - id: 21098
+    title: "FURB142 generator parenthesization"
+    category: autofix_convergence
+    url: "https://github.com/astral-sh/ruff/issues/21098"
+    tier: C
+    why_hard: "Autofix drops parentheses, producing semantically wrong code"
+    repro: "ruff check --isolated --select FURB142 --preview --fix reproduction.py"
+    status: pending
