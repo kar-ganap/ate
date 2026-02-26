@@ -36,7 +36,8 @@ uv run ate treatments list
 ## Built On
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) — agentic coding tool
-- [Agent Teams & Subagents](https://docs.anthropic.com/en/docs/claude-code/sub-agents) — the multi-agent infrastructure under study
+- [Agent Teams](https://code.claude.com/docs/en/agent-teams) — multi-agent collaboration feature under study
+- [Subagents](https://code.claude.com/docs/en/sub-agents) — the default hub-and-spoke delegation mechanism
 
 ## Validation Gates
 
