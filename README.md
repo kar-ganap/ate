@@ -13,6 +13,7 @@ capability frontier.
 First in the [ate-series](https://github.com/kar-ganap/ate-series). Successors:
 [ate-features](https://github.com/kar-ganap/ate-features) (feature implementation),
 [ate-arch](https://github.com/kar-ganap/ate-arch) (architecture design).
+Full write-up: [paper](https://github.com/kar-ganap/ate-series/blob/main/paper/main.pdf).
 
 ## Results at a Glance
 
